@@ -1,19 +1,29 @@
 import pandas as pd
 from typing import Dict
 
-def get_movie_id_name_map()-> Dict:
-    """Returns a dictionary with movie_id -> movie_name
+def get_movies_id_map() -> Dict:
+    """Returns movies id->name map 
+    ```
+    {
+        1: 'Toy story',
+        2: 'Jumanji',
+        3: 'Grumpy Old Men',
+        4: 'Waiting to Exhale',
+        5: 'Father of the Bride Part II',
+        ...
+    }
+    ```
 
     Returns:
         Dict: _description_
-    """
-    movie_titles= pd.read_csv(
-        "data/movie_titles.csv", 
-        encoding="latin-1",
-        on_bad_lines='skip',
-        names=["movie_id", "year", "name"]
+    """    
+
+    movies = pd.read_csv(
+        "data/movies.dat", 
+        sep='\t',
+        encoding='latin1'
     )
 
-    return movie_titles.set_index("movie_id")\
-        .name\
+    return movies.set_index("id")\
+        .title\
         .to_dict()
