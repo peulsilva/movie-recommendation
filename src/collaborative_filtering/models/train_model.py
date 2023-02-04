@@ -27,9 +27,10 @@ class SGDOptimizer(BaseEstimator):
         self.regularization_factor = regularization_factor
         self.train_epochs = train_epochs
         self.learning_rate = learning_rate
-        self.train_errors = []
         self.epsilon = epsilon
         self.predict_constraints = predict_constraints
+        self.train_errors = []
+        self.val_errors = []
 
     def rms(
         self, 
@@ -53,7 +54,8 @@ class SGDOptimizer(BaseEstimator):
     
     def fit(
         self, 
-        y_train : np.ndarray
+        y_train : np.ndarray,
+        y_val : np.ndarray
     ):
         """Trains and returns X and Theta matrices with SGD
 
@@ -97,15 +99,14 @@ class SGDOptimizer(BaseEstimator):
                 self.Theta[:, u] += self.learning_rate * dTheta_u
                 self.X[:, m] += self.learning_rate * dX_m 
                 
+            y_pred = self.predict()
+            train_error = self.rms(y_train, y_pred)
+            val_error = self.rms(y_val, y_pred)
 
-            err = 0
-            for u,m in zip(users, movies):
-                y_pred = np.dot(self.Theta[:, u].T, self.X[:, m])
-                err += (y_train[u,m] - y_pred)**2
-            
-            self.train_errors.append(np.sqrt(err/users.shape[0]))
+            self.train_errors.append(train_error)
+            self.val_errors.append(val_error)
 
-            print(f'train epoch {train_epoch}; ', err/users.shape[0])
+            print(f'train epoch {train_epoch}; \ntrain error: {train_error} \nvalidation error: {val_error}')
 
     def __l2_gradient(
         self,
@@ -135,12 +136,19 @@ class SGDOptimizer(BaseEstimator):
 
         return dTheta_u, dX_m 
     
-    def predict(self) -> np.ndarray:
+    def predict(
+        self,
+        Theta : np.ndarray = None,
+        X : np.ndarray = None
+    ) -> np.ndarray:
         """Return predictions matrix as theta.T @ X
 
         Returns:
             np.ndarray: _description_
-        """        
+        """   
+        if (Theta is not None) and (X is not None):
+            self.Theta = Theta
+            self.X = X
         y_pred = self.Theta.T @ self.X
 
         if self.predict_constraints :
@@ -150,6 +158,17 @@ class SGDOptimizer(BaseEstimator):
         return y_pred
 
     def get_evaluation_errors(self) -> List[float]:
-        return self.train_errors
+        return self.train_errors, self.val_errors
         # return Theta, X
+
+    def reshape(self, matrix: np.ndarray):
+        if len(matrix.shape) > 1 :
+            return matrix
+        
+        new_shape = (
+            self.num_features, 
+            int(matrix.shape[0]/self.num_features)
+        )
+
+        return np.reshape(matrix, new_shape)
             
