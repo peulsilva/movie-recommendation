@@ -8,7 +8,7 @@ The data is obtained from [GroupLens](https://grouplens.org/datasets/hetrec-2011
 
 In general, we have 
 
-* 855598 reviews from 10109, made by 2113
+* 855598 reviews from 10109 movies, made by 2113 users
 * The reviews were submitted from 1997 to 2009
 
 ## Approaches
